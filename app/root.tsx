@@ -1,5 +1,6 @@
 import { cssBundleHref } from "@remix-run/css-bundle";
 import type { LinksFunction } from "@remix-run/node";
+import './global.css';
 import {
   Links,
   LiveReload,
@@ -11,6 +12,9 @@ import {
 
 export const links: LinksFunction = () => [
   ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
+  { rel:'preconnect', href:'https://fonts.googleapis.com' },
+  { rel:'preconnect', href:"https://fonts.gstatic.com", crossOrigin:'use-credentials'},
+  { rel:'stylesheet', href:'https://fonts.googleapis.com/css2?family=Anton&family=Roboto+Mono&family=Black+Han+Sans&family=Black+Ops+One&display=swap'},
 ];
 
 export default function App() {
