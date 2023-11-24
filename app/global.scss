@@ -23,6 +23,7 @@ body{
     height: 100vh;
     width: 100vw;
     overflow: hidden;
+    background-color: #000000;
 }
 
 .hide{
@@ -40,8 +41,10 @@ body{
         height: 100%;
         width: 50%;
         &:focus{outline: none;}
+        &.success{opacity: 0 !important;transition: opacity 0.5s ease-in-out;}
     }
     div:not(.errorline, .switch){
+        &.success{opacity: 0 !important;transition: opacity 0.5s ease-in-out;}
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -59,7 +62,7 @@ body{
             &:active{color: #ddd;}
         }
         input{
-            width: 180px;
+            width: 270px;
             border-radius: 5px;
             border: 0;
             background-color: rgba(255, 255, 255, 0.2);
@@ -83,7 +86,7 @@ body{
             &::placeholder{color: #fff;opacity: 0.5;}
         }
         button{
-            width: 200px;
+            width: 300px;
             border-radius: 5px;
             padding: 15px;
             border: 0;
@@ -93,7 +96,7 @@ body{
             font-weight: bold;
             font-size: 1rem;
             cursor: pointer;
-            transition: background 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            transition: background 0.2s ease-in-out, box-shadow 0.2s ease-in-out opacity 0.2s ease-in-out;
             &:focus{outline: none;}
             &:hover{
                 background: linear-gradient(to right, #ff22b2, #c622ff);
@@ -102,6 +105,95 @@ body{
             }
             &:active{
                 background: linear-gradient(to right, #ff44ff, #ff44ff);
+                box-shadow: 0 0 15px rgba(0,0,0,0.7);
+                transition: background 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            }
+            &:disabled{
+                opacity: 0.5;
+                color: #fff;
+                cursor: not-allowed;
+                transition: opacity 0.2s ease-in-out;
+            }
+            &.success{background: #00ff00 !important; transition: background 0.5s ease-in-out;}
+        }
+    }
+}
+
+.main-page{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    background: linear-gradient(to right bottom, #54004e, #220738, #041f3a);
+    .profile{
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 300px;
+        background-color: rgba(255, 255, 255, 0.1);
+        box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        border-radius: 5px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        .profile-set{
+            display: flex;
+            flex-direction: row;
+            justify-content: start;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+            .profile-information{
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: flex-start;
+                gap: 0.3rem;
+                .profile-name{
+                    font-size: 1rem;
+                    font-weight: bold;
+                    color: #fff;
+                }
+                .profile-rank{
+                    font-size: 0.7rem;
+                    font-weight: bold;
+                    color: #fff;
+                }
+            }
+            .profile-img{
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                background-color: #fff;
+                box-shadow: 0 0 5px rgba(0,0,0,0.3);
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+            }
+        }
+        .profile-logout{
+            width: 90%;
+            border-radius: 5px;
+            padding: 0.6rem;
+            border: 0;
+            background: linear-gradient(to right, #6316e0, #1667e0);
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+            color: #fff;
+            font-weight: bold;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: background 0.2s ease-in-out, box-shadow 0.2s ease-in-out opacity 0.2s ease-in-out;
+            &:focus{outline: none;}
+            &:hover{
+                background: linear-gradient(to right, #4816e0, #168fe0);
+                box-shadow: 0 0 10px rgba(0,0,0,0.5);
+                transition: background 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            }
+            &:active{
+                background: linear-gradient(to right, #1659e0, #16cce0);
                 box-shadow: 0 0 15px rgba(0,0,0,0.7);
                 transition: background 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
             }

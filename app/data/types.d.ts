@@ -5,6 +5,10 @@ interface User{
     avatar: string;
     createdAt: Date;
     updatedAt: Date;
+    win: number;
+    lose: number;
+    draw: number;
+    rating: number;
 }
 
 type Page = 'main' | 'login' | 'register' | 'profile' | 'settings' | 'about' | 'notfound';

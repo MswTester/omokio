@@ -1,9 +1,8 @@
 import { json, type ActionFunction, type MetaFunction, LoaderFunction } from "@remix-run/node";
 import { FC, createContext, useContext, useEffect, useState } from "react";
-import { createUser, deleteUser, getUser, updateUser } from "./lib/api";
-import { Engine } from "babylonjs";
 import { init } from "~/logic/canvas";
 import { lng } from "~/data/lang";
+import { checkNick, checkPass, sha256 } from "~/data/utils";
 
 export const meta: MetaFunction = () => {
   return [
@@ -13,30 +12,6 @@ export const meta: MetaFunction = () => {
 };
 
 export const GlobalContext = createContext<any>({});
-
-export const action:ActionFunction = async ({request}) => {
-  const jsn = request.json() as unknown as req;
-  console.log(jsn.mode);
-  let res;
-  switch(jsn.mode){
-    case 'getUser':
-      res = await getUser('id', jsn.id as string);
-      break;
-    case 'createUser':
-      res = await createUser(jsn.user as unknown as User);
-      break;
-    case 'updateUser':
-      res = await updateUser(jsn.id as string, jsn.user as unknown as User);
-      break;
-    case 'deleteUser':
-      res = await deleteUser(jsn.id as string);
-      break;
-    default:
-      res = null;
-      break;
-  }
-  return res;
-}
 
 export default function Index() {
   const [hydra, setHydra] = useState<boolean>(false);
@@ -49,13 +24,7 @@ export default function Index() {
 
     let userId = localStorage.getItem('userId')
     if(userId){
-      const formData = new FormData()
-      formData.append('mode', 'getUser')
-      formData.append('id', userId)
-      fetch(`/?index`, {
-        method: 'POST',
-        body: formData
-      }).then(res => res.json()).then((res:{res:User}) => {
+      fetch(`/getUser/type/id/value/${userId}`).then(res => res.json()).then((res:{res:User}) => {
         if(res.res){
           setUser(res.res)
           setPage('main')
@@ -76,12 +45,29 @@ export default function Index() {
 }
 
 const Main:FC = () => {
+  const {user, setUser} = useContext(GlobalContext);
+  const {page, setPage} = useContext(GlobalContext);
+  const {lang, setLang} = useContext(GlobalContext);
+
   return <>
-    <h1>omok.io</h1>
-    <p>Online gomoku play</p>
-    <p>omok.io is a free online gomoku play site.</p>
-    <p>It is currently under development.</p>
-    <p>Thank you for your interest.</p>
+    <div className="main-page">
+      <div className="main"></div>
+      <div className="menu"></div>
+      <div className="profile">
+        <div className="profile-set">
+          <div className="profile-img" style={{backgroundImage:`url(${user?.avatar})`}}></div>
+          <div className="profile-information">
+            <div className="profile-name">{user?.name}</div>
+            <div className="profile-rank">{user?.rating}RT</div>
+          </div>
+        </div>
+        <div className="profile-logout" onClick={() => {
+          localStorage.removeItem('userId')
+          setUser(null)
+          setPage('login')
+        }}>{lng(lang, 'logout')}</div>
+      </div>
+    </div>
   </>
 }
 
@@ -91,36 +77,50 @@ const Login:FC = () => {
   const {lang, setLang} = useContext(GlobalContext);
   const [name, setName] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
 
   const login = () => {
-    fetch(`/?index`, {method: 'GET'}).then(res => res.json()).then((res:{res:User}) => {
+    if(name === ''){return setError('enter name')}
+    if(password === ''){return setError('enter password')}
+    setButtonDisabled(true)
+    fetch(`/getUser/type/name/value/${name}`).then(res => res.json()).then((res:{res:User}) => {
+      console.log(res)
       if(res.res){
-        if(res.res.password === password){
+        if(res.res.password === sha256(password)){
+          setButtonDisabled(false)
           localStorage.setItem('userId', res.res.id)
           setUser(res.res)
+          setTimeout(() => {
+            setPage('main')
+          }, 500);
         }else{
+          setButtonDisabled(false)
           setError('wrong password')
         }
       }else{
+        setButtonDisabled(false)
         setError('cant find account')
       }
     })
   }
 
   const register = () => {
-    fetch(`/?index`, {
-      method: 'POST',
-      body: JSON.stringify({mode: 'createUser', user: {name, password}})
-    }).then(res => {
+    if(!checkNick(name)){return setError('Name must be 3~12 characters long including numbers and alphabets')}
+    if(!checkPass(password)){return setError('Password must be more than 8 characters long including numbers and alphabets')}
+    setButtonDisabled(true)
+    fetch(`/createUser/name/${name}/password/${password}`).then(res => {
       console.log(res)
       return res.json()
     }).then((res:{res:User}) => {
       if(res.res){
+        setButtonDisabled(false)
         localStorage.setItem('userId', res.res.id)
         setUser(res.res)
+        setPage('main')
       }else{
         setError('already used id')
+        setButtonDisabled(false)
       }
     })
   }
@@ -142,15 +142,15 @@ const Login:FC = () => {
   }, []);
 
   return <>
-    <div className="login-page">
-      <canvas id="renderCanvas"></canvas>
-      <div>
+    <div className={`login-page`}>
+      <canvas className={user ? "success" : ""} id="renderCanvas"></canvas>
+      <div className={user ? "success" : ""}>
         <input type="text" name="name" id="" value={name} placeholder="Nickname"
         onChange={e => {setName(e.target.value);setError('')}}/>
         <input type="password" name="password" id="" value={password} placeholder="Password"
         onChange={e => {setPassword(e.target.value);setError('')}}/>
-        {page === 'login' ? <button onClick={() => {login()}}>Login</button>:
-        page === 'register' && <button onClick={() => {register()}}>Register</button>}
+        {page === 'login' ? <button className={user ? "success" : ""} disabled={buttonDisabled} onClick={() => {login()}}>{buttonDisabled ? ". . ." : "Login"}</button>:
+        page === 'register' && <button className={user ? "success" : ""} disabled={buttonDisabled} onClick={() => {register()}}>{buttonDisabled ? ". . ." : "Register"}</button>}
         <div className="switch" onClick={e => {
           if(page === 'login'){setPage('register')}else{setPage('login')}
         }}>{lng(lang, page === 'login' ? 'to register' : 'to login')}</div>

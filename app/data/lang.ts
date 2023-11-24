@@ -12,6 +12,10 @@ const keys:{[key:string]:{[key:string]:string}} = {
         "en":"To Login",
         "ko":"로그인으로"
     },
+    "logout":{
+        "en":"Logout",
+        "ko":"로그아웃"
+    },
 }
 
 export function lng(lang:string, key:string){

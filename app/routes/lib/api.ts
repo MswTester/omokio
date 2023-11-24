@@ -16,7 +16,7 @@ export async function createUser(user: User): Promise<User> {
     return result;
 }
 
-export async function updateUser(id: string, user: User): Promise<User> {
+export async function updateUser(id: string, user:any): Promise<User> {
     await connectToMongoDB();
     const db = getMongoDB();
     const collection = db.collection("users");

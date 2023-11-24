@@ -3,7 +3,7 @@ import { MongoClient, Db } from 'mongodb';
 // Code writes support from chatGPT-3.5
 
 // MongoDB 연결 문자열 (MongoDB URI)
-const uri = `mongodb+srv://ashual:${process.env.DBPASS}@cluster0.qo3ekyu.mongodb.net/`; // 본인의 MongoDB URI로 변경
+const uri = `mongodb+srv://realtime:${process.env.DBPASS}@cluster0.qo3ekyu.mongodb.net/`; // 본인의 MongoDB URI로 변경
 
 // MongoDB 클라이언트 생성
 const client = new MongoClient(uri);
