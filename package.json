@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "remix build",
-    "dev": "concurrently \"pnpm sass\" \"remix dev\"",
+    "dev": "concurrently \"remix dev\" \"pnpm sass\"",
     "start": "remix-serve ./build/index.js",
     "typecheck": "tsc",
     "sass": "sass --watch app/:app/"

@@ -200,9 +200,9 @@ body {
   background-repeat: no-repeat;
 }
 .main-page .profile .profile-logout {
-  width: 80%;
+  width: 90%;
   border-radius: 5px;
-  padding: 1rem;
+  padding: 0.6rem;
   border: 0;
   background: linear-gradient(to right, #6316e0, #1667e0);
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
