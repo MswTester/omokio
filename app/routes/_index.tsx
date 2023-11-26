@@ -13,6 +13,8 @@ export const meta: MetaFunction = () => {
 
 export const GlobalContext = createContext<any>({});
 
+const menuTypes = ['rank', 'skin', 'play', 'profile', 'settings'];
+
 export default function Index() {
   const [hydra, setHydra] = useState<boolean>(false);
   const [user, setUser] = useState<User|null>(null);
@@ -48,17 +50,59 @@ const Main:FC = () => {
   const {user, setUser} = useContext(GlobalContext);
   const {page, setPage} = useContext(GlobalContext);
   const {lang, setLang} = useContext(GlobalContext);
+  const [menu, setMenu] = useState<string>('play');
+  const [gamemode, setGamemode] = useState<string>('general');
+  const [isFetching, setIsFetching] = useState<boolean>(false);
+  const leftOf:{[key:string]:string} = {
+    'rank': '',
+    'general': 'rank',
+    'custom': 'general',
+  }
+  const rightOf:{[key:string]:string} = {
+    'rank': 'general',
+    'general': 'custom',
+    'custom': '',
+  }
 
   return <>
     <div className="main-page">
-      <div className="main"></div>
-      <div className="menu"></div>
+      <div className="main">
+        {menu === 'play' ? <div className="main-play">
+          <div className="gamemode">
+            <div className="gamemode-item">{lng(lang, `${leftOf[gamemode]}mode`)}</div>
+            <div className="gamemode-item center">{lng(lang, `${gamemode}mode`)}</div>
+            <div className="gamemode-item">{lng(lang, `${rightOf[gamemode]}mode`)}</div>
+          </div>
+          <canvas id="renderCanvas"></canvas>
+          <button className="match">{lng(lang, 'match')}</button>
+        </div>:
+        menu === 'rank' ? <div className="main-rank">
+          <div className="rank-title">{lng(lang, 'rank')}</div>
+        </div>:
+        menu === 'skin' ? <div className="main-skin">
+          <div className="skin-title">{lng(lang, 'skin')}</div>
+        </div>:
+        menu === 'profile' ? <div className="main-profile">
+          <div className="profile-title">{lng(lang, 'profile')}</div>
+        </div>:
+        menu === 'settings' && <div className="main-settings">
+          <div className="settings-title">{lng(lang, 'settings')}</div>
+        </div>}
+      </div>
+      <div className="menu">
+        {menuTypes.map((v, i) => (
+          <div className={`menu-item ${menu === v ? 'active' : ''}`} key={i} onClick={() => {setMenu(v)}}>
+            <div className="menu-item-icon" style={{backgroundImage:`url(icons/${v}.svg)`}}></div>
+            <div className="menu-item-text">{lng(lang, v)}</div>
+          </div>
+        ))}
+      </div>
       <div className="profile">
         <div className="profile-set">
           <div className="profile-img" style={{backgroundImage:`url(${user?.avatar})`}}></div>
           <div className="profile-information">
             <div className="profile-name">{user?.name}</div>
-            <div className="profile-rank">{user?.rating}RT</div>
+            <div className="profile-rank">{user?.rating} RT</div>
           </div>
         </div>
         <div className="profile-logout" onClick={() => {
