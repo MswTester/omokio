@@ -133,23 +133,36 @@ const keys:{[key:string]:{[key:string]:string}} = {
         "ko":"찾을 수 없는 페이지입니다."
     },
     "rankmode":{
-        "en":"Rank Mode",
-        "ko":"랭크 모드"
+        "en":"Rank",
+        "ko":"랭크전"
     },
     "generalmode":{
-        "en":"General Mode",
-        "ko":"일반 모드"
+        "en":"General",
+        "ko":"일반전"
     },
     "custommode":{
-        "en":"Custom Mode",
-        "ko":"커스텀 모드"
+        "en":"Custom",
+        "ko":"커스텀"
     },
     "match":{
         "en":"Match",
         "ko":"대전"
     },
+    "theme":{
+        "en":"Theme",
+        "ko":"테마"
+    },
+    "board":{
+        "en":"Board",
+        "ko":"보드"
+    },
+    "stone":{
+        "en":"Stone",
+        "ko":"돌"
+    },
 }
 
 export function lng(lang:string, key:string){
+    if(!keys[key]) return key
     return keys[key][lang]
 }
