@@ -9,6 +9,8 @@ interface User{
     lose: number;
     draw: number;
     rating: number;
+    gold: number;
+    unlocked: (string|number)[][];
 }
 
 type Page = 'main' | 'login' | 'register' | 'profile' | 'settings' | 'about' | 'notfound';

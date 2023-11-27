@@ -1,6 +1,6 @@
 import * as BABYLON from 'babylonjs';
 
-export const init = (window:Window, canvas:HTMLCanvasElement, type:string):{engine:BABYLON.Engine} => {
+export const init = (canvas:HTMLCanvasElement, type:string):{engine:BABYLON.Engine} => {
     const engine = new BABYLON.Engine(canvas, true);
     async function createScene():Promise<BABYLON.Scene> {
         const scene = new BABYLON.Scene(engine);
@@ -40,6 +40,5 @@ export const init = (window:Window, canvas:HTMLCanvasElement, type:string):{engi
                 break;
         }
     });
-    window.addEventListener('resize', () => engine.resize());
     return {engine}
 }

@@ -3,6 +3,7 @@ import { FC, SetStateAction, createContext, useContext, useEffect, useState } fr
 import { init } from "~/logic/canvas";
 import { lng } from "~/data/lang";
 import { checkNick, checkPass, sha256 } from "~/data/utils";
+import { shopItems } from "~/data/gdata";
 
 export const meta: MetaFunction = () => {
   return [
@@ -57,6 +58,9 @@ const Main:FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [isMatch, setIsMatch] = useState<boolean>(false);
   const [shopMenu, setShopMenu] = useState<string>('theme');
+  const [usernameInput, setUsernameInput] = useState<string>(user?.name || '');
+  const [passwordInput, setPasswordInput] = useState<string>('');
+  const [error, setError] = useState<string>('');
   const leftOf:{[key:string]:string} = {
     'rank': '',
     'general': 'rank',
@@ -89,16 +93,16 @@ const Main:FC = () => {
     }
     if(menu === 'play' && !cengine){
       const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
-      const {engine} = init(window, canvas, 'rotate');
+      const {engine} = init(canvas, 'rotate');
       setCengine(engine as unknown as SetStateAction<BABYLON.Engine | null>);
     }
-    if(menu === 'rank'){
+    if(menu === 'rank' && !isFetching && users.length === 0){
       setIsFetching(true)
       fetch('/getAllUsers').then(res => res.json()).then((res:{res:User[]}) => {
         setUsers(res.res.sort((a, b) => b.rating - a.rating))
         setIsFetching(false)
       })
-    } else {setUsers([])}
+    }
   }, [menu]);
 
   return <>
@@ -135,65 +139,81 @@ const Main:FC = () => {
         </div>:
         menu === 'skin' ? <div className="main-skin">
           <div className="shop-menu">
-            <div className={`shop-menu-item ${shopMenu === "theme" ? "active" : ""}`} onClick={e => {setShopMenu('theme')}}>{lng(lang, 'theme')}</div>
-            <div className={`shop-menu-item ${shopMenu === "board" ? "active" : ""}`} onClick={e => {setShopMenu('board')}}>{lng(lang, 'board')}</div>
-            <div className={`shop-menu-item ${shopMenu === "stone" ? "active" : ""}`} onClick={e => {setShopMenu('stone')}}>{lng(lang, 'stone')}</div>
+            {Object.keys(shopItems).map((v, i) => (
+              <div className={`shop-menu-item ${shopMenu === v ? "active" : ""}`} key={i} onClick={e => {setShopMenu(v)}}>{lng(lang, v)}</div>
+            ))}
           </div>
           <div className="shop-item-list">
-            <div className="shop-item">
-              <div className="shop-item-img"></div>
-              <div className="shop-item-name">Default</div>
-              <button className="purchase">Free</button>
-            </div>
-            <div className="shop-item">
-              <div className="shop-item-img"></div>
-              <div className="shop-item-name">Default</div>
-              <button className="purchase">Free</button>
-            </div>
-            <div className="shop-item">
-              <div className="shop-item-img"></div>
-              <div className="shop-item-name">Default</div>
-              <button className="purchase">Free</button>
-            </div>
-            <div className="shop-item">
-              <div className="shop-item-img"></div>
-              <div className="shop-item-name">Default</div>
-              <button className="purchase">Free</button>
-            </div>
-            <div className="shop-item">
-              <div className="shop-item-img"></div>
-              <div className="shop-item-name">Default</div>
-              <button className="purchase">Free</button>
-            </div>
-            <div className="shop-item">
-              <div className="shop-item-img"></div>
-              <div className="shop-item-name">Default</div>
-              <button className="purchase">Free</button>
-            </div>
-            <div className="shop-item">
-              <div className="shop-item-img"></div>
-              <div className="shop-item-name">Default</div>
-              <button className="purchase">Free</button>
-            </div>
-            <div className="shop-item">
-              <div className="shop-item-img"></div>
-              <div className="shop-item-name">Default</div>
-              <button className="purchase">Free</button>
-            </div>
-            <div className="shop-item">
-              <div className="shop-item-img"></div>
-              <div className="shop-item-name">Default</div>
-              <button className="purchase">Free</button>
-            </div>
-            <div className="shop-item">
-              <div className="shop-item-img"></div>
-              <div className="shop-item-name">Default</div>
-              <button className="purchase">Free</button>
-            </div>
+            {shopItems[shopMenu].map((v, i) => (
+              <div className="shop-item" key={i}>
+                <div className="shop-item-img" style={{backgroundImage:`url(shop_item_icons/${v.name}.svg)`}}></div>
+                <div className="shop-item-name">{lng(lang, v.name as string)}</div>
+                <button disabled={isFetching} className="purchase">{v.price}G</button>
+              </div>))}
           </div>
         </div>:
         menu === 'profile' ? <div className="main-profile">
-          <div className="profile-title">{lng(lang, 'profile')}</div>
+          <div className="options">
+            <div>{lng(lang, 'username')}</div>
+            <input type="text" value={usernameInput} placeholder={lng(lang, 'username')} onChange={e => setUsernameInput(e.target.value)} />
+            <button disabled={isFetching || usernameInput === "" || user.name === usernameInput}>{lng(lang, 'save')}</button>
+          </div>
+          <div className="options">
+            <div>{lng(lang, 'password')}</div>
+            <input type="password" value={passwordInput} placeholder={lng(lang, 'password')} onChange={e => setPasswordInput(e.target.value)} />
+            <button disabled={isFetching || passwordInput === "" || sha256(passwordInput) === user?.password}>{lng(lang, 'change')}</button>
+          </div>
+          <div className="options">
+            <div>{lng(lang, "avatar")}</div>
+            <div className="avatar" style={{backgroundImage:`url(${user?.avatar})`}}></div>
+            <button disabled={isFetching} onClick={e => {
+              const fileInput = document.createElement('input');
+              fileInput.type = 'file';
+              fileInput.accept = 'image/*';
+              fileInput.onchange = e => {
+                if(fileInput.files && fileInput.files[0]){
+                  const file = fileInput.files[0];
+                  const reader = new FileReader();
+                  reader.onload = e => {
+                    if(reader.result){
+                      // post avatar upload fetcher
+                      setIsFetching(true)
+                      fetch(`/updateUser/id/${user?.id}/avatar/avatar`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({id: user?.id, value: reader.result}),
+                      }).then(res => {
+                        setIsFetching(false)
+                        setUser({...user, avatar: reader.result as string})
+                        fileInput.value = '';
+                      }).catch(err => {
+                        setIsFetching(false)
+                        console.log(err)
+                      })
+                    }
+                  }
+                  reader.readAsDataURL(file);
+                }
+              }
+              fileInput.click();
+            }}>{lng(lang, 'change')}</button>
+          </div>
+          <div className="options">
+            <div>{lng(lang, 'delete account')}</div>
+            <button disabled={isFetching} onClick={e => {
+              setIsFetching(true)
+              fetch(`/deleteUser/id/${user?.id}`).then(res => res.json()).then((res:{res:boolean}) => {
+                if(res.res){
+                  setIsFetching(false)
+                  localStorage.removeItem('userId')
+                  setUser(null)
+                  setPage('login')
+                }
+              }).catch(err => {
+                console.log(err)
+              })
+            }}>{lng(lang, 'delete')}</button>
+          </div>
         </div>:
         menu === 'settings' && <div className="main-settings">
           <div className="settings-title">{lng(lang, 'settings')}</div>
@@ -207,7 +227,7 @@ const Main:FC = () => {
           </div>
         ))}
       </div>
-      <div className="profile">
+      {menu === "play" && <div className="profile">
         <div className="profile-set">
           <div className="profile-img" style={{backgroundImage:`url(${user?.avatar})`}}></div>
           <div className="profile-information">
@@ -220,7 +240,7 @@ const Main:FC = () => {
           setUser(null)
           setPage('login')
         }}>{lng(lang, 'logout')}</div>
-      </div>
+      </div>}
     </div>
   </>
 }
@@ -283,13 +303,14 @@ const Login:FC = () => {
 
   useEffect(() => {
     const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
+    const {engine} = init(canvas, 'rotate');
     const resize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
+      engine.resize();
     }
     resize()
     window.addEventListener('resize', resize)
-    const {engine} = init(window, canvas, 'rotate');
 
     return () => {
       engine.dispose();

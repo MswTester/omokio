@@ -18,6 +18,8 @@ export const loader:LoaderFunction = async ({params}) => {
         lose: 0,
         draw: 0,
         rating: 0,
+        gold: 0,
+        unlocked: [],
     }
     res = await createUser(newUser);
     return json({res});

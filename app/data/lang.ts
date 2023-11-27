@@ -160,6 +160,34 @@ const keys:{[key:string]:{[key:string]:string}} = {
         "en":"Stone",
         "ko":"돌"
     },
+    "beige_wall":{
+        "en":"Beige Wall",
+        "ko":"베이지 벽돌"
+    },
+    "laminate_floor":{
+        "en":"Laminate Floor",
+        "ko":"라미네이트 바닥"
+    },
+    "rubber_tiles":{
+        "en":"Rubber Tiles",
+        "ko":"고무 타일"
+    },
+    "cobblestone":{
+        "en":"Cobblestone",
+        "ko":"자갈"
+    },
+    "corrugated_iron":{
+        "en":"Corrugated Iron",
+        "ko":"철판"
+    },
+    "mossy_sandstone":{
+        "en":"Mossy Sandstone",
+        "ko":"이끼 낀 모래암"
+    },
+    "change":{
+        "en":"Change",
+        "ko":"변경"
+    },
 }
 
 export function lng(lang:string, key:string){
