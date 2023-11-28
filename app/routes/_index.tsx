@@ -60,7 +60,8 @@ const Main:FC = () => {
   const [shopMenu, setShopMenu] = useState<string>('theme');
   const [usernameInput, setUsernameInput] = useState<string>(user?.name || '');
   const [passwordInput, setPasswordInput] = useState<string>('');
-  const [error, setError] = useState<string>('');
+  const [nameError, setNameError] = useState<string>('');
+  const [passwordError, setPasswordError] = useState<string>('');
   const leftOf:{[key:string]:string} = {
     'rank': '',
     'general': 'rank',
@@ -96,7 +97,7 @@ const Main:FC = () => {
       const {engine} = init(canvas, 'rotate');
       setCengine(engine as unknown as SetStateAction<BABYLON.Engine | null>);
     }
-    if(menu === 'rank' && !isFetching && users.length === 0){
+    if(menu === 'rank' && !isFetching){
       setIsFetching(true)
       fetch('/getAllUsers').then(res => res.json()).then((res:{res:User[]}) => {
         setUsers(res.res.sort((a, b) => b.rating - a.rating))
@@ -104,6 +105,21 @@ const Main:FC = () => {
       })
     }
   }, [menu]);
+
+  const updateUser = (id:string, type:string, value:string) => {
+    setIsFetching(true)
+    fetch(`/updateUser/id/${id}/type/${type}/value/${value}`).then(res => res.json()).then((res:{res?:User, message?:string}) => {
+      setIsFetching(false)
+      if(res.res){
+        setUser(res.res)
+      } else if(res.message) {
+        setNameError(lng(lang, res.message))
+      }
+    }).catch(err => {
+      setIsFetching(false)
+      console.log(err)
+    })
+  }
 
   return <>
     <div className="main-page">
@@ -121,7 +137,11 @@ const Main:FC = () => {
             }}>{lng(lang, `${rightOf[gamemode]}mode`)}</div>
           </div>
           <canvas width={500} height={200} id="renderCanvas"></canvas>
-          <button className="match">{lng(lang, 'match')}</button>
+          <div className="btn-layer">
+            {gamemode !== 'custom' && <button className="match">{lng(lang, 'match')}</button>}
+            {gamemode === 'custom' && <button className="create-room">{lng(lang, 'create room')}</button>}
+            {gamemode === 'custom' && <button className="join-room">{lng(lang, 'join room')}</button>}
+          </div>
         </div>:
         menu === 'rank' ? <div className="main-rank">
           <div className="rank-list">
@@ -155,14 +175,22 @@ const Main:FC = () => {
         menu === 'profile' ? <div className="main-profile">
           <div className="options">
             <div>{lng(lang, 'username')}</div>
-            <input type="text" value={usernameInput} placeholder={lng(lang, 'username')} onChange={e => setUsernameInput(e.target.value)} />
-            <button disabled={isFetching || usernameInput === "" || user.name === usernameInput}>{lng(lang, 'save')}</button>
+            <input type="text" value={usernameInput} placeholder={lng(lang, 'username')} onChange={e => {setUsernameInput(e.target.value);setNameError('')}} />
+            <button disabled={isFetching || usernameInput === "" || user.name === usernameInput} onClick={e => {
+              if(!checkNick(usernameInput)){return setNameError('Name must be 3~12 characters long including numbers and alphabets')}
+              updateUser(user.id, 'name', usernameInput)
+            }}>{lng(lang, 'save')}</button>
           </div>
+          <div className="error">{nameError}</div>
           <div className="options">
             <div>{lng(lang, 'password')}</div>
-            <input type="password" value={passwordInput} placeholder={lng(lang, 'password')} onChange={e => setPasswordInput(e.target.value)} />
-            <button disabled={isFetching || passwordInput === "" || sha256(passwordInput) === user?.password}>{lng(lang, 'change')}</button>
+            <input type="password" value={passwordInput} placeholder={lng(lang, 'password')} onChange={e => {setPasswordInput(e.target.value);setPasswordError('')}} />
+            <button disabled={isFetching || passwordInput === "" || sha256(passwordInput) === user?.password} onClick={e => {
+              if(!checkPass(passwordInput)){return setPasswordError('Password must be more than 8 characters long including numbers and alphabets')}
+              updateUser(user.id, 'password', sha256(passwordInput))
+            }}>{lng(lang, 'change')}</button>
           </div>
+          <div className="error">{passwordError}</div>
           <div className="options">
             <div>{lng(lang, "avatar")}</div>
             <div className="avatar" style={{backgroundImage:`url(${user?.avatar})`}}></div>
@@ -178,10 +206,12 @@ const Main:FC = () => {
                     if(reader.result){
                       // post avatar upload fetcher
                       setIsFetching(true)
-                      fetch(`/updateUser/id/${user?.id}/avatar/avatar`, {
+                      const formData = new FormData();
+                      formData.append('id', user?.id as string);
+                      formData.append('avatar', reader.result as string);
+                      fetch(`/avatar`, {
                         method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({id: user?.id, value: reader.result}),
+                        body: formData,
                       }).then(res => {
                         setIsFetching(false)
                         setUser({...user, avatar: reader.result as string})
@@ -259,7 +289,6 @@ const Login:FC = () => {
     if(password === ''){return setError('enter password')}
     setButtonDisabled(true)
     fetch(`/getUser/type/name/value/${name}`).then(res => res.json()).then((res:{res:User}) => {
-      console.log(res)
       if(res.res){
         if(res.res.password === sha256(password)){
           setButtonDisabled(false)
@@ -270,11 +299,11 @@ const Login:FC = () => {
           }, 500);
         }else{
           setButtonDisabled(false)
-          setError('wrong password')
+          setError(lng(lang, 'wrong password'))
         }
       }else{
         setButtonDisabled(false)
-        setError('cant find account')
+        setError(lng(lang, 'cant find account'))
       }
     })
   }
@@ -284,7 +313,6 @@ const Login:FC = () => {
     if(!checkPass(password)){return setError('Password must be more than 8 characters long including numbers and alphabets')}
     setButtonDisabled(true)
     fetch(`/createUser/name/${name}/password/${password}`).then(res => {
-      console.log(res)
       return res.json()
     }).then((res:{res:User}) => {
       if(res.res){
@@ -295,7 +323,7 @@ const Login:FC = () => {
           setPage('main')
         }, 500);
       }else{
-        setError('already used id')
+        setError(lng(lang, 'name already exists'))
         setButtonDisabled(false)
       }
     })

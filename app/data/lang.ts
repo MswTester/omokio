@@ -188,6 +188,26 @@ const keys:{[key:string]:{[key:string]:string}} = {
         "en":"Change",
         "ko":"변경"
     },
+    "name already exists":{
+        "en":"Name already exists",
+        "ko":"이미 존재하는 이름입니다"
+    },
+    "cant find account":{
+        "en":"Can't find account",
+        "ko":"계정을 찾을 수 없습니다"
+    },
+    "wrong password":{
+        "en":"Wrong password",
+        "ko":"잘못된 비밀번호입니다"
+    },
+    "join room":{
+        "en":"Join Room",
+        "ko":"방 참가"
+    },
+    "create room":{
+        "en":"Create Room",
+        "ko":"방 생성"
+    },
 }
 
 export function lng(lang:string, key:string){

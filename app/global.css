@@ -371,12 +371,18 @@ div.loading {
 .main-page .main .main-play .gamemode .gamemode-item.rm {
   visibility: hidden;
 }
-.main-page .main .main-play button.match {
+.main-page .main .main-play .btn-layer {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+.main-page .main .main-play .btn-layer button {
   width: 200px;
   border-radius: 5px;
   padding: 20px;
   border: 0;
-  background: linear-gradient(to right, #4e22ff, #406ade);
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
   color: #fff;
   font-weight: bold;
@@ -384,20 +390,27 @@ div.loading {
   cursor: pointer;
   transition: background 0.2s ease-in-out, box-shadow 0.2s ease-in-out opacity 0.2s ease-in-out;
 }
-.main-page .main .main-play button.match:focus {
+.main-page .main .main-play .btn-layer button.match {
+  background: linear-gradient(to right, #4e22ff, #406ade);
+}
+.main-page .main .main-play .btn-layer button:focus {
   outline: none;
 }
-.main-page .main .main-play button.match:hover {
+.main-page .main .main-play .btn-layer button:hover {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-  background: linear-gradient(to right, #0084ff, #00e5ff);
   transition: background 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
-.main-page .main .main-play button.match:active {
-  background: linear-gradient(to right, #44f6ff, #449bff);
+.main-page .main .main-play .btn-layer button:hover.match {
+  background: linear-gradient(to right, #0084ff, #00e5ff);
+}
+.main-page .main .main-play .btn-layer button:active {
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
   transition: background 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
-.main-page .main .main-play button.match:disabled {
+.main-page .main .main-play .btn-layer button:active.match {
+  background: linear-gradient(to right, #44f6ff, #449bff);
+}
+.main-page .main .main-play .btn-layer button:disabled {
   opacity: 0.5;
   color: #fff;
   cursor: not-allowed;
@@ -710,7 +723,7 @@ div.loading {
   color: #fff;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
   font-weight: bold;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   transition: background 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 .main-page .main .main-profile .options input:focus {
@@ -737,6 +750,10 @@ div.loading {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+}
+.main-page .main .main-profile .error {
+  color: red;
+  font-size: 0.8rem;
 }
 
 /*# sourceMappingURL=global.css.map */

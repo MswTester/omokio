@@ -20,7 +20,8 @@ export async function updateUser(id: string, user:any): Promise<User> {
     await connectToMongoDB();
     const db = getMongoDB();
     const collection = db.collection("users");
-    const result = (await collection.updateOne({ id }, { $set: user })) as unknown as User;
+    await collection.updateOne({ id }, { $set: user });
+    const result = collection.findOne({ id }) as unknown as User;
     return result;
 }
 

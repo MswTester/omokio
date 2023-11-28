@@ -22,5 +22,5 @@ export const loader:LoaderFunction = async ({params}) => {
         unlocked: [],
     }
     res = await createUser(newUser);
-    return json({res});
+    return json({res:newUser});
 }
