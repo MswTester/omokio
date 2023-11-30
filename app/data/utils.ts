@@ -53,3 +53,15 @@ export function getMaterial(str:string, scene:BABYLON.Scene):BABYLON.Material{
   if(displays[str]) material.emissiveTexture = new BABYLON.Texture(`materials/${str}/${str}_${displays[str]}`, scene);
   return material
 }
+
+export function generateRandomAlphabets(count: number): string {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let result = '';
+
+  for (let i = 0; i < count; i++) {
+      const randomIndex = Math.floor(Math.random() * alphabet.length);
+      result += alphabet.charAt(randomIndex);
+  }
+
+  return result;
+}

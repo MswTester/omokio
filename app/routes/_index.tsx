@@ -2,8 +2,9 @@ import { json, type ActionFunction, type MetaFunction, LoaderFunction } from "@r
 import { FC, SetStateAction, createContext, useContext, useEffect, useState } from "react";
 import { init } from "~/logic/canvas";
 import { lng } from "~/data/lang";
-import { checkNick, checkPass, sha256 } from "~/data/utils";
+import { checkNick, checkPass, generateRandomAlphabets, sha256 } from "~/data/utils";
 import { shopItems } from "~/data/gdata";
+import {Socket, io} from "socket.io-client";
 
 export const meta: MetaFunction = () => {
   return [
@@ -15,6 +16,8 @@ export const meta: MetaFunction = () => {
 export const GlobalContext = createContext<any>({});
 
 const menuTypes = ['rank', 'skin', 'play', 'profile', 'settings'];
+
+const socket = io('http://localhost:80');
 
 export default function Index() {
   const [hydra, setHydra] = useState<boolean>(false);
@@ -34,6 +37,7 @@ export default function Index() {
         }
       })
     }
+
   }, []);
 
   return (hydra && <GlobalContext.Provider value={{
@@ -52,7 +56,7 @@ const Main:FC = () => {
   const {page, setPage} = useContext(GlobalContext);
   const {lang, setLang} = useContext(GlobalContext);
   const [menu, setMenu] = useState<string>('play');
-  const [gamemode, setGamemode] = useState<string>('general');
+  const [gamemode, setGamemode] = useState<GameMode>('general');
   const [cengine, setCengine] = useState<BABYLON.Engine|null>(null);
   const [isFetching, setIsFetching] = useState<boolean>(false);
   const [users, setUsers] = useState<User[]>([]);
@@ -62,15 +66,18 @@ const Main:FC = () => {
   const [passwordInput, setPasswordInput] = useState<string>('');
   const [nameError, setNameError] = useState<string>('');
   const [passwordError, setPasswordError] = useState<string>('');
+  const [code, setCode] = useState<string>('');
+  const [codeError, setCodeError] = useState<string>('');
+
   const leftOf:{[key:string]:string} = {
-    'rank': '',
+    'rank': 'custom',
     'general': 'rank',
     'custom': 'general',
   }
   const rightOf:{[key:string]:string} = {
     'rank': 'general',
     'general': 'custom',
-    'custom': '',
+    'custom': 'rank',
   }
 
   useEffect(() => {
@@ -121,26 +128,41 @@ const Main:FC = () => {
     })
   }
 
+  const enterMatch = (type:GameMode, code?:string) => {
+    setIsMatch(true)
+    socket.emit('enterMatch', {type, id:user?.id, code, rating:user?.rating, winrate:user?.win / user?.lose})
+  }
+
+  const cancelMatch = () => {
+    setIsMatch(false)
+    socket.emit('cancelMatch', user?.id)
+  }
+
+  const joinCustomMatch = () => {
+    if(code === ''){return setCodeError('pls enter code')}
+    enterMatch('custom', code)
+  }
+
   return <>
     <div className="main-page">
       <div className="main" style={{height:`calc(100% - ${document.querySelector('.menu')?.clientHeight}px)`}}>
         {menu === 'play' ? <div className="main-play">
           <div className="gamemode">
-            <div className={`gamemode-item ${leftOf[gamemode] == '' ? 'rm' : ''}`} onClick={e => {
-              if(leftOf[gamemode] !== ''){setGamemode(leftOf[gamemode])}
-            }}>{lng(lang, `${leftOf[gamemode]}mode`)}</div>
+            <button disabled={isMatch} className={`gamemode-item ${leftOf[gamemode] == '' ? 'rm' : ''}`} onClick={e => {
+              if(leftOf[gamemode] !== ''){setGamemode(leftOf[gamemode] as GameMode)}
+            }}>{lng(lang, `${leftOf[gamemode]}mode`)}</button>
             <div className={`arrow left ${leftOf[gamemode] == '' ? 'rm' : ''}`}>&lt;</div>
-            <div className="gamemode-item center">{lng(lang, `${gamemode}mode`)}</div>
+            <button disabled={isMatch} className="gamemode-item center">{lng(lang, `${gamemode}mode`)}</button>
             <div className={`arrow right ${rightOf[gamemode] == '' ? 'rm' : ''}`}>&gt;</div>
-            <div className={`gamemode-item ${rightOf[gamemode] == '' ? 'rm' : ''}`} onClick={e => {
-              if(rightOf[gamemode] !== ''){setGamemode(rightOf[gamemode])}
-            }}>{lng(lang, `${rightOf[gamemode]}mode`)}</div>
+            <button disabled={isMatch} className={`gamemode-item ${rightOf[gamemode] == '' ? 'rm' : ''}`} onClick={e => {
+              if(rightOf[gamemode] !== ''){setGamemode(rightOf[gamemode] as GameMode)}
+            }}>{lng(lang, `${rightOf[gamemode]}mode`)}</button>
           </div>
           <canvas width={500} height={200} id="renderCanvas"></canvas>
+          {gamemode === 'custom' && <input type="text" id="code" className="code" placeholder={lng(lang, 'enter code')} value={code} onChange={e => setCode(e.target.value)} disabled={isMatch} />}
           <div className="btn-layer">
-            {gamemode !== 'custom' && <button className="match">{lng(lang, 'match')}</button>}
-            {gamemode === 'custom' && <button className="create-room">{lng(lang, 'create room')}</button>}
-            {gamemode === 'custom' && <button className="join-room">{lng(lang, 'join room')}</button>}
+            {gamemode !== 'custom' && <button onClick={e => !isMatch ? enterMatch(gamemode) : cancelMatch()} className={`match ${isMatch ? "matching" : ""}`}>{isMatch ? lng(lang, 'matching') : lng(lang, 'match')}</button>}
+            {gamemode === 'custom' && <button onClick={e => !isMatch ? joinCustomMatch() : cancelMatch()} className={`join-custom-match ${isMatch ? "matching" : ""}`}>{isMatch ? lng(lang, 'matching') : lng(lang, 'join custom match')}</button>}
           </div>
         </div>:
         menu === 'rank' ? <div className="main-rank">
@@ -251,10 +273,10 @@ const Main:FC = () => {
       </div>
       <div className="menu">
         {menuTypes.map((v, i) => (
-          <div className={`menu-item ${menu === v ? 'active' : ''}`} key={i} onClick={() => {setMenu(v)}}>
+          <button disabled={isMatch} className={`menu-item ${menu === v ? 'active' : ''}`} key={i} onClick={() => {setMenu(v)}}>
             <div className="menu-item-icon" style={{backgroundImage:`url(icons/${v}.svg)`}}></div>
             <div className="menu-item-text">{lng(lang, v)}</div>
-          </div>
+          </button>
         ))}
       </div>
       {menu === "play" && <div className="profile">

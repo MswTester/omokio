@@ -261,6 +261,7 @@ div.loading {
   padding: 0.5rem;
   background-color: rgba(255, 255, 255, 0.1);
   display: flex;
+  border: 0;
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -280,7 +281,7 @@ div.loading {
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
   transition: background 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
-.main-page .menu .menu-item.disabled {
+.main-page .menu .menu-item:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transition: opacity 0.2s ease-in-out;
@@ -338,6 +339,7 @@ div.loading {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  border: 0;
   cursor: pointer;
   transition: background 0.2s ease-in-out, box-shadow 0.2s ease-in-out opacity 0.2s ease-in-out;
   font-size: 0.7rem;
@@ -357,7 +359,7 @@ div.loading {
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
   transition: background 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
-.main-page .main .main-play .gamemode .gamemode-item.disabled {
+.main-page .main .main-play .gamemode .gamemode-item:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transition: opacity 0.2s ease-in-out;
@@ -370,6 +372,40 @@ div.loading {
 }
 .main-page .main .main-play .gamemode .gamemode-item.rm {
   visibility: hidden;
+}
+.main-page .main .main-play input.code {
+  width: 200px;
+  border-radius: 5px;
+  border: 0;
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 5px;
+  color: #fff;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+  font-weight: bold;
+  font-size: 0.8rem;
+  transition: background 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.main-page .main .main-play input.code:focus {
+  outline: none;
+}
+.main-page .main .main-play input.code:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  transition: background 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.main-page .main .main-play input.code:active {
+  background-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
+  transition: background 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.main-page .main .main-play input.code::placeholder {
+  color: #fff;
+  opacity: 0.5;
+}
+.main-page .main .main-play input.code:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transition: opacity 0.2s ease-in-out;
 }
 .main-page .main .main-play .btn-layer {
   display: flex;
@@ -393,6 +429,12 @@ div.loading {
 .main-page .main .main-play .btn-layer button.match {
   background: linear-gradient(to right, #4e22ff, #406ade);
 }
+.main-page .main .main-play .btn-layer button.join-custom-match {
+  background: linear-gradient(to right, #efe200, #ef9000);
+}
+.main-page .main .main-play .btn-layer button.matching {
+  background: linear-gradient(to right, #ff2285, #de40d1) !important;
+}
 .main-page .main .main-play .btn-layer button:focus {
   outline: none;
 }
@@ -403,12 +445,24 @@ div.loading {
 .main-page .main .main-play .btn-layer button:hover.match {
   background: linear-gradient(to right, #0084ff, #00e5ff);
 }
+.main-page .main .main-play .btn-layer button:hover.join-custom-match {
+  background: linear-gradient(to right, #efe244, #efa044);
+}
+.main-page .main .main-play .btn-layer button:hover.matching {
+  background: linear-gradient(to right, #ff2285, #de40d1) !important;
+}
 .main-page .main .main-play .btn-layer button:active {
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
   transition: background 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 .main-page .main .main-play .btn-layer button:active.match {
   background: linear-gradient(to right, #44f6ff, #449bff);
+}
+.main-page .main .main-play .btn-layer button:active.join-custom-match {
+  background: linear-gradient(to right, #fff277, #ffc044);
+}
+.main-page .main .main-play .btn-layer button:active.matching {
+  background: linear-gradient(to right, #ff2285, #de40d1) !important;
 }
 .main-page .main .main-play .btn-layer button:disabled {
   opacity: 0.5;

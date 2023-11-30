@@ -200,13 +200,17 @@ const keys:{[key:string]:{[key:string]:string}} = {
         "en":"Wrong password",
         "ko":"잘못된 비밀번호입니다"
     },
-    "join room":{
-        "en":"Join Room",
-        "ko":"방 참가"
+    "join custom match":{
+        "en":"Join Custom Match",
+        "ko":"커스텀 대전 참가"
     },
-    "create room":{
-        "en":"Create Room",
-        "ko":"방 생성"
+    "matching":{
+        "en":"Matching . . .",
+        "ko":"매칭중 . . ."
+    },
+    "enter code":{
+        "en":"Enter Code",
+        "ko":"코드 입력"
     },
 }
 
