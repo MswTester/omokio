@@ -13,7 +13,7 @@ interface User{
     unlocked: (string|number)[][];
 }
 
-type Page = 'main' | 'login' | 'register' | 'profile' | 'settings' | 'about' | 'notfound';
+type Page = 'main' | 'login' | 'register' | 'notfound' | 'play';
 
 interface req{
     mode: 'getUser' | 'createUser' | 'updateUser' | 'deleteUser';
@@ -34,8 +34,10 @@ interface Match{
     whiteTime:number;
     blackSocketId:string;
     blackUser:User;
+    blackReady:boolean;
     whiteSocketId:string;
     whiteUser:User;
+    whiteReady:boolean;
     isStarted:boolean;
     isMatched:boolean;
     isFinished:boolean;

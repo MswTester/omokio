@@ -1,6 +1,8 @@
+// Path: omokio/app/routes/_index.tsx
+
 import { json, type ActionFunction, type MetaFunction, LoaderFunction } from "@remix-run/node";
 import { FC, SetStateAction, createContext, useContext, useEffect, useState } from "react";
-import { init } from "~/logic/canvas";
+import { Game, init } from "~/logic/canvas";
 import { lng } from "~/data/lang";
 import { checkNick, checkPass, generateRandomAlphabets, sha256 } from "~/data/utils";
 import { shopItems } from "~/data/gdata";
@@ -24,6 +26,7 @@ export default function Index() {
   const [user, setUser] = useState<User|null>(null);
   const [lang, setLang] = useState<string>('ko');
   const [page, setPage] = useState<Page>('login');
+  const [match, setMatch] = useState<Match|null>(null);
 
   useEffect(() => {
     setHydra(true);
@@ -38,15 +41,28 @@ export default function Index() {
       })
     }
 
+    socket.on('matched', (data:Match) => {
+      setMatch(data)
+      setPage('play')
+      setTimeout(() => {
+        socket.emit('ready', data.ownerSocketId)
+      }, 3000);
+    })
+
+    return () => {
+      socket.off('matched')
+    }
   }, []);
 
   return (hydra && <GlobalContext.Provider value={{
     user, setUser,
     page, setPage,
     lang, setLang,
+    match, setMatch,
   }}>
     {page === 'main' ? <Main />:
     page === 'login' || page === 'register' ? <Login />:
+    page === 'play' ? <Play />:
     <></>}
   </GlobalContext.Provider>);
 }
@@ -55,6 +71,7 @@ const Main:FC = () => {
   const {user, setUser} = useContext(GlobalContext);
   const {page, setPage} = useContext(GlobalContext);
   const {lang, setLang} = useContext(GlobalContext);
+  const {match, setMatch} = useContext(GlobalContext);
   const [menu, setMenu] = useState<string>('play');
   const [gamemode, setGamemode] = useState<GameMode>('general');
   const [cengine, setCengine] = useState<BABYLON.Engine|null>(null);
@@ -383,6 +400,70 @@ const Login:FC = () => {
         }}>{lng(lang, page === 'login' ? 'to register' : 'to login')}</div>
         <div className="errorline">{error}</div>
       </div>
+    </div>
+  </>
+}
+
+const Play:FC = () => {
+  const {user, setUser} = useContext(GlobalContext);
+  const {page, setPage} = useContext(GlobalContext);
+  const {lang, setLang} = useContext(GlobalContext);
+  const {match, setMatch} = useContext(GlobalContext);
+  const [myColor, setMyColor] = useState<string>('');
+
+  useEffect(() => {
+    if(!match){return}
+    setMyColor(match.blackSocketId === socket.id ? 'black' : 'white')
+
+    const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
+    const mm:Game = new Game(canvas, match.board)
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      mm.engine.resize();
+    }
+    resize()
+    window.addEventListener('resize', resize)
+    
+    socket.on('update', (data:Match) => {
+      console.log('update')
+      setMatch(data)
+    })
+    
+    socket.on('start', (data:Match) => {
+      console.log('start')
+      setMatch(data)
+    })
+    console.log('make game',mm)
+    
+    return () => {
+      window.removeEventListener('resize', resize);
+      socket.off('update');
+      socket.off('start');
+    }
+  }, []);
+
+  useEffect(() => {
+    if(!match){return}
+    const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
+    // main?.renderBoard(match.board)
+
+    const click = (e:MouseEvent) => {
+      // main?.placeStone(e.clientX, e.clientY, socket, match?.ownerSocketId)
+    }
+    if(match.turn === myColor){
+      canvas.style.cursor = 'pointer';
+      canvas.addEventListener('click', click)
+    }
+    return () => {
+      canvas.style.cursor = 'default';
+      canvas.removeEventListener('click', click)
+    }
+  }, [match]);
+
+  return <>
+    <div className="play-page">
+      <canvas id="renderCanvas"></canvas>
     </div>
   </>
 }
