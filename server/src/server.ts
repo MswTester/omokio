@@ -12,6 +12,8 @@ const httpServer = app.server!; // Note: Non-null assertion (!) is used here for
 const io = new SocketIoServer(httpServer, {
     cors: {
         origin: '*',
+        methods: ['GET', 'POST'],
+        allowedHeaders: ['my-custom-header']
     },
     // https://socket.io/docs/v4/server-api/#server-adapter
 });
@@ -23,8 +25,9 @@ const matches:Match[] = [];
 
 const finishMatch = (match:Match, winner:string) => {
     match.isFinished = true;
-    io.to(match.blackSocketId).emit('finish', {winner});
-    io.to(match.whiteSocketId).emit('finish', {winner});
+    io.to(match.blackSocketId).emit('finish', winner);
+    io.to(match.whiteSocketId).emit('finish', winner);
+    matches.splice(matches.indexOf(match), 1);
 }
 
 let timer = 0;
@@ -46,6 +49,8 @@ const loop = setInterval(() => {
                     finishMatch(match, 'black');
                 }
             }
+            io.to(match.blackSocketId).emit('update', match);
+            io.to(match.whiteSocketId).emit('update', match);
         }
         if(!match.isMatched){
             // find match
@@ -59,6 +64,8 @@ const loop = setInterval(() => {
                     const random = Math.floor(Math.random() * 2);
                     match.blackSocketId = random ? match.ownerSocketId : match2.ownerSocketId;
                     match.whiteSocketId = random ? match2.ownerSocketId : match.ownerSocketId;
+                    match.blackUser = random ? match.ownerUser : match2.ownerUser;
+                    match.whiteUser = random ? match2.ownerUser : match.ownerUser;
                     console.log('matched', match);
                     io.to(match.blackSocketId).emit('matched', match);
                     io.to(match.whiteSocketId).emit('matched', match);
@@ -87,6 +94,7 @@ io.on('connection', (socket) => {
     let newMatch:Match = {
         type: data.type,
         created: +`${timer}`,
+        ownerUser: data.user,
         ownerSocketId: socket.id,
         board,
         turn: 'black',
@@ -103,6 +111,7 @@ io.on('connection', (socket) => {
         isFinished: false,
         code: data.code,
         rating: data.rating,
+        winrate: data.winrate,
     };
     matches.push(newMatch);
     console.log('enterMatch', data);
@@ -139,12 +148,14 @@ io.on('connection', (socket) => {
 
   socket.on('place', (data:{x:number, y:number, ownerId:string}) => {
     matches.forEach((match, index) => {
-        if(match.isFinished) return;
+        if(match.isFinished || !match.isStarted) return;
         if(match.ownerSocketId !== data.ownerId) return;
         if(match.blackSocketId === socket.id && match.turn === 'black'){
             if(match.board[data.y][data.x] === ''){
                 match.board[data.y][data.x] = 'black';
                 match.turn = 'white';
+                io.to(match.blackSocketId).emit('placeStone', {x: data.x, y: data.y, color: 'black'});
+                io.to(match.whiteSocketId).emit('placeStone', {x: data.x, y: data.y, color: 'black'});
                 if(hasWinningMove(match.board, 'black', 5)){
                     finishMatch(match, 'black');
                 }
@@ -154,6 +165,8 @@ io.on('connection', (socket) => {
             if(match.board[data.y][data.x] === ''){
                 match.board[data.y][data.x] = 'white';
                 match.turn = 'black';
+                io.to(match.blackSocketId).emit('placeStone', {x: data.x, y: data.y, color: 'white'});
+                io.to(match.whiteSocketId).emit('placeStone', {x: data.x, y: data.y, color: 'white'});
                 if(hasWinningMove(match.board, 'white', 5)){
                     finishMatch(match, 'white');
                 }

@@ -27,6 +27,7 @@ interface req{
 interface Match{
     type: 'rank' | 'general' | 'custom';
     created:number;
+    ownerUser:User;
     ownerSocketId:string;
     board:string[][];
     turn:'black' | 'white';

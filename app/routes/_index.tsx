@@ -2,7 +2,7 @@
 
 import { json, type ActionFunction, type MetaFunction, LoaderFunction } from "@remix-run/node";
 import { FC, SetStateAction, createContext, useContext, useEffect, useState } from "react";
-import { Game, init } from "~/logic/canvas";
+import { init, initGame } from "~/logic/canvas";
 import { lng } from "~/data/lang";
 import { checkNick, checkPass, generateRandomAlphabets, sha256 } from "~/data/utils";
 import { shopItems } from "~/data/gdata";
@@ -19,7 +19,11 @@ export const GlobalContext = createContext<any>({});
 
 const menuTypes = ['rank', 'skin', 'play', 'profile', 'settings'];
 
-const socket = io('http://localhost:80');
+const socket = io('http://localhost:80', {
+  extraHeaders: {
+    "my-custom-header": "abcd"
+  }
+});
 
 export default function Index() {
   const [hydra, setHydra] = useState<boolean>(false);
@@ -147,7 +151,7 @@ const Main:FC = () => {
 
   const enterMatch = (type:GameMode, code?:string) => {
     setIsMatch(true)
-    socket.emit('enterMatch', {type, id:user?.id, code, rating:user?.rating, winrate:user?.win / user?.lose})
+    socket.emit('enterMatch', {type, id:user?.id, user:{...user, avatar:undefined}, code, rating:user?.rating, winrate:user?.win / user?.lose} as MatchData)
   }
 
   const cancelMatch = () => {
@@ -410,59 +414,152 @@ const Play:FC = () => {
   const {lang, setLang} = useContext(GlobalContext);
   const {match, setMatch} = useContext(GlobalContext);
   const [myColor, setMyColor] = useState<string>('');
+  const [isFetching, setIsFetching] = useState<boolean>(false);
+  const [isStart, setIsStart] = useState<boolean>(false);
+  const [startTransition, setStartTransition] = useState<number>(0);
+  const [isFinish, setIsFinish] = useState<boolean>(false);
+  const [finishTransition, setFinishTransition] = useState<number>(0);
+  const [myuser, setMyuser] = useState<User|null>(null);
+  const [enemyuser, setEnemyuser] = useState<User|null>(null);
+  const [winner, setWinner] = useState<string>('');
 
+  
   useEffect(() => {
     if(!match){return}
-    setMyColor(match.blackSocketId === socket.id ? 'black' : 'white')
+    let turn = 'black'
+    let mcolor = match.blackSocketId === socket.id ? 'black' : 'white'
+    setMyColor(mcolor)
+    setMyuser(match.blackSocketId === socket.id ? match.blackUser : match.whiteUser)
+    setEnemyuser(match.blackSocketId === socket.id ? match.whiteUser : match.blackUser)
 
     const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
-    const mm:Game = new Game(canvas, match.board)
+    const {engine, placeStone, addStone, posTo, removeSelection, initialMotion} = initGame(canvas, match.board)
+
+    initialMotion()
+
+    let t = 0;
+    const loop_start = setInterval(() => {
+      if(!match){return}
+      t += 0.01;
+      let x = t / 3
+      let tr = x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+      setStartTransition(tr)
+      if(t >= 3){clearTimeout(loop_start); return}
+    }, 10);
+  
     const resize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      mm.engine.resize();
+      engine.resize();
     }
     resize()
     window.addEventListener('resize', resize)
     
-    socket.on('update', (data:Match) => {
-      console.log('update')
-      setMatch(data)
+    socket.on('placeStone', (position:{x:number;y:number;color:string}) => {
+      turn = position.color === 'black' ? 'white' : 'black'
+      console.log(turn)
+      addStone(position.x, position.y, position.color)
     })
     
     socket.on('start', (data:Match) => {
-      console.log('start')
+      canvas.addEventListener('click', click)
+      setMatch(data)
+      setIsStart(true)
+    })
+
+    socket.on('update', (data:Match) => {
       setMatch(data)
     })
-    console.log('make game',mm)
+    
+    socket.on('finish', (winner:string) => {
+      setIsFinish(true)
+      let t = 0;
+      const loop_finish = setInterval(() => {
+        t += 0.01;
+        let x = t / 3
+        let tr = x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+        setFinishTransition(tr)
+        if(t >= 3){clearTimeout(loop_finish); return}
+      }, 10);
+      setTimeout(() => {
+        setIsFinish(false)
+        setFinishTransition(0)
+        setIsStart(false)
+        setStartTransition(0)
+        setMatch(null)
+        setPage('main')
+      }, 3001);
+      console.log(winner)
+      setWinner(winner)
+    })
+  
+    const mousedown = () => {
+    }
+
+    const mouseup = () => {
+    }
+
+    const mousemove = (e:MouseEvent) => {
+      if(mcolor !== turn){return removeSelection();};
+      posTo(e.clientX, e.clientY);
+    }
+
+    document.addEventListener('mousedown', mousedown);
+    document.addEventListener('mouseup', mouseup);
+    document.addEventListener('mousemove', mousemove);
+    
+    const click = (e:MouseEvent) => {
+      if(!match){return}
+      placeStone(e.clientX, e.clientY, socket, match?.ownerSocketId)
+    }
     
     return () => {
       window.removeEventListener('resize', resize);
-      socket.off('update');
+      socket.off('placeStone');
       socket.off('start');
+      socket.off('update')
+      canvas.removeEventListener('click', click)
+      engine.dispose();
+      document.removeEventListener('mousedown', mousedown);
+      document.removeEventListener('mouseup', mouseup);
+      document.removeEventListener('mousemove', mousemove);
     }
   }, []);
 
   useEffect(() => {
     if(!match){return}
     const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
-    // main?.renderBoard(match.board)
 
-    const click = (e:MouseEvent) => {
-      // main?.placeStone(e.clientX, e.clientY, socket, match?.ownerSocketId)
-    }
     if(match.turn === myColor){
       canvas.style.cursor = 'pointer';
-      canvas.addEventListener('click', click)
     }
+
     return () => {
       canvas.style.cursor = 'default';
-      canvas.removeEventListener('click', click)
     }
   }, [match]);
 
   return <>
     <div className="play-page">
+      {isStart || <div className="intro">
+        <div style={{left:`${(1 - startTransition*0.7)*100}%`}} className="text me">{myColor === 'black' ? match.blackUser.name : match.whiteUser.name}</div>
+        <div style={{left:`${startTransition*70}%`}} className="text enemy">{myColor === 'white' ? match.blackUser.name : match.whiteUser.name}</div>
+      </div>}
+      {isFinish && <div className="finish">
+        <div className="text winner" style={{top:`${finishTransition*50}%`}}>{myColor === winner ? lng(lang, 'win') : lng(lang, 'lose')}</div>
+      </div>}
+      {isStart && !isFinish && <div className="layout layout-me">
+        <div className="timeline">
+          <div className="timeline-bar" style={{width:`${(myColor === 'black' ? match.blackTime : match.whiteTime)/6}%`}}></div>
+        </div>
+        <div className="text-name" style={{backgroundColor:myColor, color:myColor === 'black' ? 'white' : 'black'}}>{myuser?.name}</div>
+      </div>}
+      {isStart && !isFinish && <div className="layout layout-enemy">
+        <div className="text-name" style={{backgroundColor:myColor === 'black' ? 'white' : 'black', color:myColor}}>{enemyuser?.name}</div>
+        <div className="timeline">
+        <div className="timeline-bar" style={{width:`${(myColor === 'white' ? match.blackTime : match.whiteTime)/6}%`}}></div>
+        </div>
+      </div>}
       <canvas id="renderCanvas"></canvas>
     </div>
   </>

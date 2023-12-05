@@ -212,6 +212,10 @@ const keys:{[key:string]:{[key:string]:string}} = {
         "en":"Enter Code",
         "ko":"코드 입력"
     },
+    "turn":{
+        "en":"Turn",
+        "ko":"차례"
+    },
 }
 
 export function lng(lang:string, key:string){
