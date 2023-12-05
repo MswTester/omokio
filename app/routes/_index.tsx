@@ -19,7 +19,7 @@ export const GlobalContext = createContext<any>({});
 
 const menuTypes = ['rank', 'skin', 'play', 'profile', 'settings'];
 
-const socket = io('http://localhost:80', {
+const socket = io('http://10.246.96.127:80', {
   extraHeaders: {
     "my-custom-header": "abcd"
   }
@@ -550,14 +550,16 @@ const Play:FC = () => {
       </div>}
       {isStart && !isFinish && <div className="layout layout-me">
         <div className="timeline">
-          <div className="timeline-bar" style={{width:`${(myColor === 'black' ? match.blackTime : match.whiteTime)/6}%`}}></div>
+          <div className="timeline-bar" style={{width:`${(myColor === 'black' ? match.blackTime : match.whiteTime)/6}%`,
+          backgroundColor:`rgba(${myColor === match.turn ? '0' : '255'}, 255, 255, 0.5)`}}></div>
         </div>
         <div className="text-name" style={{backgroundColor:myColor, color:myColor === 'black' ? 'white' : 'black'}}>{myuser?.name}</div>
       </div>}
       {isStart && !isFinish && <div className="layout layout-enemy">
         <div className="text-name" style={{backgroundColor:myColor === 'black' ? 'white' : 'black', color:myColor}}>{enemyuser?.name}</div>
         <div className="timeline">
-        <div className="timeline-bar" style={{width:`${(myColor === 'white' ? match.blackTime : match.whiteTime)/6}%`}}></div>
+        <div className="timeline-bar" style={{width:`${(myColor === 'white' ? match.blackTime : match.whiteTime)/6}%`,
+        backgroundColor:`rgba(${myColor === match.turn ? '255' : '0'}, 255, 255, 0.5)`}}></div>
         </div>
       </div>}
       <canvas id="renderCanvas"></canvas>

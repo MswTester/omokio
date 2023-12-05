@@ -4,11 +4,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const fastify_1 = __importDefault(require("fastify"));
+const express_1 = __importDefault(require("express"));
+const http_1 = require("http");
 const socket_io_1 = require("socket.io");
 const logic_1 = require("./logic");
-const app = (0, fastify_1.default)();
-const httpServer = app.server; // Note: Non-null assertion (!) is used here for simplicity.
+const app = (0, express_1.default)();
+const httpServer = (0, http_1.createServer)(app); // Note: Non-null assertion (!) is used here for simplicity.
 const io = new socket_io_1.Server(httpServer, {
     cors: {
         origin: '*',
@@ -17,8 +18,8 @@ const io = new socket_io_1.Server(httpServer, {
     },
     // https://socket.io/docs/v4/server-api/#server-adapter
 });
-app.get('/', (request, reply) => {
-    reply.send("Hello, world!");
+app.get('/', (request, res) => {
+    res.send("Hello, world!");
 });
 const matches = [];
 const finishMatch = (match, winner) => {
@@ -182,9 +183,7 @@ io.on('connection', (socket) => {
         });
     });
 });
-app.listen(80, (err, address) => {
-    if (err)
-        throw err;
-    console.log(`Server listening on ${address}`);
+httpServer.listen(80, () => {
+    console.log(`Server listening on *:80`);
 });
 //# sourceMappingURL=server.js.map

@@ -2,6 +2,7 @@
 
 import * as BABYLON from 'babylonjs';
 import { Socket } from 'socket.io-client';
+import { getMaterial } from '~/data/utils';
 
 export const init = (canvas:HTMLCanvasElement, type:string):{engine:BABYLON.Engine} => {
     const engine = new BABYLON.Engine(canvas, true);
@@ -82,9 +83,9 @@ export const initGame = (canvas:HTMLCanvasElement, board:string[][]):{
         board_mesh.rotation.x = Math.PI/2;
         board_mesh.position.x = 0;
         board_mesh.position.y = 0;
-        const board_material = new BABYLON.StandardMaterial("board_material", scene);
-        board_material.diffuseColor = new BABYLON.Color3(1, 1, 1);
-        board_mesh.material = board_material;
+        // const board_material = new BABYLON.StandardMaterial("board_material", scene);
+        // board_material.diffuseColor = new BABYLON.Color3(1, 1, 1);
+        board_mesh.material = getMaterial("mossy_sandstone", scene as any) as unknown as BABYLON.Nullable<BABYLON.Material>;
 
         // draw lines
         const lines = [];

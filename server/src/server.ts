@@ -1,15 +1,15 @@
 // Path: omokio/server/src/server.ts
 
-import fastify, { FastifyInstance } from 'fastify';
-import { Server, IncomingMessage, ServerResponse } from 'http';
-import { Server as SocketIoServer } from 'socket.io';
+import express from 'express';
+import { IncomingMessage, ServerResponse, createServer } from 'http';
+import { Server } from 'socket.io';
 import { hasWinningMove } from './logic';
 
-const app: FastifyInstance<Server, IncomingMessage, ServerResponse> = fastify();
+const app = express();
 
-const httpServer = app.server!; // Note: Non-null assertion (!) is used here for simplicity.
+const httpServer = createServer(app); // Note: Non-null assertion (!) is used here for simplicity.
 
-const io = new SocketIoServer(httpServer, {
+const io = new Server(httpServer, {
     cors: {
         origin: '*',
         methods: ['GET', 'POST'],
@@ -18,8 +18,8 @@ const io = new SocketIoServer(httpServer, {
     // https://socket.io/docs/v4/server-api/#server-adapter
 });
 
-app.get('/', (request, reply) => {
-  reply.send("Hello, world!");
+app.get('/', (request, res) => {
+  res.send("Hello, world!");
 });
 const matches:Match[] = [];
 
@@ -187,7 +187,6 @@ io.on('connection', (socket) => {
   });
 });
 
-app.listen(80, (err, address) => {
-  if (err) throw err;
-  console.log(`Server listening on ${address}`);
+httpServer.listen(80, () => {
+  console.log(`Server listening on *:80`);
 });
