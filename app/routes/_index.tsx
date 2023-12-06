@@ -532,9 +532,8 @@ const Play:FC = () => {
 
     if(match.turn === myColor){
       canvas.style.cursor = 'pointer';
-    }
+    } else {
 
-    return () => {
       canvas.style.cursor = 'default';
     }
   }, [match]);
