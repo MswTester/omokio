@@ -19,7 +19,7 @@ export const GlobalContext = createContext<any>({});
 
 const menuTypes = ['rank', 'skin', 'play', 'profile', 'settings'];
 
-const socket = io('http://10.246.96.127:80', {
+const socket = io('https://omok-io.onrender.com/', {
   extraHeaders: {
     "my-custom-header": "abcd"
   }
