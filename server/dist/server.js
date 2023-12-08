@@ -15,7 +15,7 @@ const io = new socket_io_1.Server(httpServer, {
         origin: '*',
         methods: ['GET', 'POST'],
         allowedHeaders: ['my-custom-header']
-    },
+    }
     // https://socket.io/docs/v4/server-api/#server-adapter
 });
 app.get('/', (request, res) => {

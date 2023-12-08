@@ -14,8 +14,7 @@ const io = new Server(httpServer, {
         origin: '*',
         methods: ['GET', 'POST'],
         allowedHeaders: ['my-custom-header']
-    },
-    transports: ['websocket'],
+    }
     // https://socket.io/docs/v4/server-api/#server-adapter
 });
 
