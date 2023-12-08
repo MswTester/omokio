@@ -19,7 +19,7 @@ export const GlobalContext = createContext<any>({});
 
 const menuTypes = ['rank', 'skin', 'play', 'profile', 'settings'];
 
-const socket = io('https://omokio-server.vercel.app/', {
+const socket = io('https://omokio.onrender.com/', {
   extraHeaders: {
     "my-custom-header": "abcd"
   }
