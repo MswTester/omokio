@@ -6,7 +6,7 @@
   "scripts": {
     "build": "remix build",
     "dev": "concurrently \"remix dev\" \"pnpm sass\"",
-    "start": "remix-serve ./build/index.js",
+    "start": "concurrently \"remix-serve ./build/index.js\" \"node server/dist/server.js\"",
     "typecheck": "tsc",
     "sass": "sass --watch app/:app/"
   },
