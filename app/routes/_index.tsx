@@ -426,6 +426,7 @@ const Play:FC = () => {
   
   useEffect(() => {
     if(!match){return}
+    let pos = [0, 0]
     let turn = 'black'
     let mcolor = match.blackSocketId === socket.id ? 'black' : 'white'
     setMyColor(mcolor)
@@ -500,13 +501,21 @@ const Play:FC = () => {
     }
 
     const mousemove = (e:MouseEvent) => {
+      pos = [e.clientX, e.clientY]
       if(mcolor !== turn){return removeSelection();};
       posTo(e.clientX, e.clientY);
+    }
+
+    const keydown = (e:KeyboardEvent) => {
+      if(e.key === 'KeyV' && e.shiftKey){
+        placeStone(pos[0], pos[1], socket, match?.ownerSocketId)
+      }
     }
 
     document.addEventListener('mousedown', mousedown);
     document.addEventListener('mouseup', mouseup);
     document.addEventListener('mousemove', mousemove);
+    document.addEventListener('keydown', keydown);
     
     const click = (e:MouseEvent) => {
       if(!match){return}
@@ -523,6 +532,7 @@ const Play:FC = () => {
       document.removeEventListener('mousedown', mousedown);
       document.removeEventListener('mouseup', mouseup);
       document.removeEventListener('mousemove', mousemove);
+      document.removeEventListener('keydown', keydown);
     }
   }, []);
 
